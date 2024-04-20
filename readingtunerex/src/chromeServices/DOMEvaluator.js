@@ -16,9 +16,9 @@ async function exampleChatCompletion(apiKey, input_json, model, age) {
          text as it appears on the page. The array also contains texts irrelevant to the main
          article, such as navigational labels. I want you to identify the texts forming the
          article (including the title, headers, captions, and any part of the article content)
-         and then simplify the content to make it understandable for
-         a ${age}-year-old. In particular, use extra care to make sure you only use words that
-         a ${age} year old can understand.
+         and then simplify the content to make it understandable for a ${age}-year-old. Use
+         extra care to make sure you only use words that a ${age} year old that only speaks the
+         original language of the article can understand.
          Return a modified JSON with only these main article text elements, where
          the 'text' field has been rewritten for a child's understanding.
          The result should be a JSON object containing a single field 'main_content'
@@ -134,17 +134,12 @@ const messagesFromReactAppListener = (
       // Ensure any info div added before are cleared out.
       document.querySelectorAll(".readingTunerInfoDiv").forEach(div => div.remove());
 
-      console.log('[content.js]. ', msg.model, msg.age, new Date(), window.location.href);
+      console.log('[content.js]. ', msg.model, msg.age, msg.commit, new Date(), window.location.href);
 
       const textNodes = [];
       findElements(document, textNodes);
       const nodeForId = {};
       textNodes.forEach(node => nodeForId[node.readTunerId] = node);
-
-      // console.log(textNodes);
-
-      const origArticleJson = JSON.stringify(textNodes.map(node => ({ id: node.readTunerId, text: node.textContent })));
-      // console.log(origArticleJson);
 
       showLoadingOverlay();
       let processedTexts = [];
@@ -152,11 +147,13 @@ const messagesFromReactAppListener = (
          processedTexts = textNodes.map(textNode => ({ id: textNode.readTunerId, text: "!!!: " + textNode.textContent }));
       } else {
          processedTexts = cachedProcessedTextsForAge[msg.age];
-         if (!processedTexts) {
+         if (!processedTexts && msg.commit) {
+            const origArticleJson = JSON.stringify(textNodes.map(node => ({ id: node.readTunerId, text: node.textContent })));
             const completionResult = await exampleChatCompletion(msg.apiKey, origArticleJson, msg.model, msg.age);
             processedTexts = JSON.parse(completionResult.choices[0].message.content).main_content;
             cachedProcessedTextsForAge[msg.age] = processedTexts;
          }
+         if (!processedTexts) processedTexts = [];
          console.log(processedTexts);
       }
       processedTexts.forEach(element => {

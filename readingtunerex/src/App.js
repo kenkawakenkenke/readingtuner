@@ -20,6 +20,11 @@ function App() {
     });
   }, []);
 
+  useEffect(() => {
+    // On age update, send a preview update to the backend.
+    simplify(false);
+  }, [age]);
+
   const handleApiKeyChange = (e) => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
@@ -32,7 +37,7 @@ function App() {
     chrome.storage.local.set({ model: newModel });
   };
 
-  function simplify() {
+  function simplify(commit) {
     chrome.tabs && chrome.tabs.query({
       active: true,
       currentWindow: true
@@ -44,11 +49,16 @@ function App() {
           apiKey,
           model,
           age,
+          commit,
         },
         (response) => {
           console.log("received response");
         });
     });
+  }
+
+  function simplifyAndCommit() {
+    simplify(true);
   }
 
   return (
@@ -58,8 +68,8 @@ function App() {
         Age:
         <input
           type="range"
-          min="5"
-          max="100"
+          min="4"
+          max="18"
           value={age}
           onChange={(e) => setAge(e.target.value)}
         />
@@ -67,7 +77,7 @@ function App() {
           {age}
         </div>
       </label>
-      <button onClick={simplify}>Tune! ({model})</button>
+      <button onClick={simplifyAndCommit}>Tune! ({model})</button>
       <div>
         <button onClick={() => setShowAdvanced(!showAdvanced)}>
           {showAdvanced ? 'Hide details' : 'Details'}
