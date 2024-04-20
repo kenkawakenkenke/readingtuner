@@ -1,0 +1,30 @@
+{
+   "name": "Reading Tuner",
+   "description": "Tune the reading level of any web article using Chat GPT!",
+   "version": "1.0",
+   "manifest_version": 3,
+   "action": {
+       "default_popup": "index.html",
+       "default_title": "Open the tuner"
+   },
+   "icons": {
+       "16": "logo192.png",
+       "48": "logo192.png",
+       "128": "logo192.png"
+   },
+  "short_name": "Reading Tuner",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "permissions": [
+   "activeTab",
+   "storage"
+  ],
+  "content_scripts": [
+   {
+       "matches": ["http://*/*", "https://*/*"],
+       "js": ["./static/js/content.js"]
+   }
+  ]
+}
