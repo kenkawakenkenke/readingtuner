@@ -11,21 +11,8 @@ async function exampleChatCompletion(apiKey, input_json, model, age) {
    const chatCompletion = await openai.chat.completions.create({
       messages: [
          {
-            role: 'system', content: `The provided JSON input represents textContents
-         extracted from a web article. It's an array of text objects containing an ID and the
-         text as it appears on the page. The array also contains texts irrelevant to the main
-         article, such as navigational labels. I want you to identify the texts forming the
-         article (including the title, headers, captions, and any part of the article content)
-         and then simplify the content to make it understandable for a ${age}-year-old. Use
-         extra care to make sure you only use words that a ${age} year old that only speaks the
-         original language of the article can understand.
-         Return a modified JSON with only these main article text elements, where
-         the 'text' field has been rewritten for a child's understanding.
-         The result should be a JSON object containing a single field 'main_content'
-         that references an array of the processed text objects.
-         You must respect and keep the original language of the text in the simplified
-         text too.
-         ` },
+            role: 'system', content: `The provided JSON input represents textContents extracted from a web article. It's an array of text objects each containing an ID and the text as it appears on the page. The array also contains text irrelevant to the main article, such as navigational labels- you should ignore these. I want you to identify the text objects forming the article (including the title, headers, captions, and any part of the article content) and then rewrite the content to make it understandable for a ${age}-year-old. Use extra care to make sure you use words understandable by a ${age} year old who only speaks the original language of the article. Return a modified JSON with only these main article text objects, where the 'text' field has been rewritten for a child's understanding. The result should be a JSON object containing a single field 'main_content' that references an array of the processed text objects. You must respect and keep the original language of the text in the rewritten text too.`
+         },
          {
             role: 'user', content: input_json
          },
@@ -72,7 +59,7 @@ function findElements(root, textNodes) {
 }
 
 // Add an overlay and a loading spinner to the page
-function showLoadingOverlay() {
+function showLoadingOverlay(age) {
    let overlay = document.createElement('div');
    overlay.id = 'loadingOverlay';
    overlay.style.position = 'fixed';
@@ -87,7 +74,7 @@ function showLoadingOverlay() {
    overlay.style.alignItems = 'center';
    overlay.style.fontSize = '24px';
    overlay.style.color = 'white';
-   overlay.innerHTML = 'Loading... <div class="spinner"></div>';
+   overlay.innerHTML = `Tuning for age ${age}... <div class="spinner"></div>`;
    document.body.appendChild(overlay);
 }
 
@@ -141,7 +128,7 @@ const messagesFromReactAppListener = (
       const nodeForId = {};
       textNodes.forEach(node => nodeForId[node.readTunerId] = node);
 
-      showLoadingOverlay();
+      showLoadingOverlay(msg.age);
       let processedTexts = [];
       if (isDryRun) {
          processedTexts = textNodes.map(textNode => ({ id: textNode.readTunerId, text: "!!!: " + textNode.textContent }));
